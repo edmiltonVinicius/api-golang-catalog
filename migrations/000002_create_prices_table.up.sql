@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS prices (
+    product_id UUID PRIMARY KEY REFERENCES products(id),
+    amount NUMERIC(10, 2) NOT NULL CHECK (amount >= 0),
+    currency TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
