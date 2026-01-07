@@ -6,7 +6,8 @@ import (
 	"net/http"
 
 	"github.com/edmiltonVinicius/go-api-catalog/internal/adapters/httpapi/request"
-	"github.com/edmiltonVinicius/go-api-catalog/internal/core/product"
+	"github.com/edmiltonVinicius/go-api-catalog/internal/application/product"
+	"github.com/edmiltonVinicius/go-api-catalog/internal/domain"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 )
@@ -57,11 +58,19 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.productService.CreateProduct(ctx, product.CreateProduct{
-		Name:   req.Name,
-		Price:  req.Price,
-		Active: *req.Active,
-	}); err != nil {
+	domain, err := domain.NewProduct(domain.CreateProduct{
+		Name:        req.Name,
+		Price:       req.Price,
+		Active:      *req.Active,
+		Description: req.Description,
+	})
+
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := h.productService.CreateProduct(ctx, *domain); err != nil {
 		writeError(w, http.StatusBadRequest, err)
 		return
 	}

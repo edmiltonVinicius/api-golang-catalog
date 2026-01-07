@@ -4,14 +4,14 @@ import (
 	"context"
 	"errors"
 
-	"github.com/edmiltonVinicius/go-api-catalog/internal/core/product"
+	"github.com/edmiltonVinicius/go-api-catalog/internal/domain"
 	"github.com/jackc/pgx/v5"
 )
 
 func (r *Repository) GetByProductID(
 	ctx context.Context,
 	productID string,
-) (*product.Price, error) {
+) (*domain.Price, error) {
 
 	query := `
 		SELECT product_id, amount, currency, updated_at
@@ -21,7 +21,7 @@ func (r *Repository) GetByProductID(
 
 	row := r.db.QueryRow(ctx, query, productID)
 
-	var p product.Price
+	var p domain.Price
 	err := row.Scan(
 		&p.ProductID,
 		&p.Amount,

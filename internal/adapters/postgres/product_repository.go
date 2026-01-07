@@ -4,15 +4,15 @@ import (
 	"context"
 	"errors"
 
-	"github.com/edmiltonVinicius/go-api-catalog/internal/core/product"
+	"github.com/edmiltonVinicius/go-api-catalog/internal/application/product"
+	"github.com/edmiltonVinicius/go-api-catalog/internal/domain"
 	"github.com/jackc/pgx/v5"
 )
 
 func (r *Repository) Create(
 	ctx context.Context,
-	p product.Product,
+	p domain.Product,
 ) error {
-
 	query := `
 		INSERT INTO products (id, sku, name, description, active, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6)
@@ -42,7 +42,7 @@ func (r *Repository) Create(
 func (r *Repository) FindByID(
 	ctx context.Context,
 	id string,
-) (*product.Product, error) {
+) (*domain.Product, error) {
 
 	query := `
 		SELECT id, sku, name, description, active, created_at
@@ -52,7 +52,7 @@ func (r *Repository) FindByID(
 
 	row := r.db.QueryRow(ctx, query, id)
 
-	var p product.Product
+	var p domain.Product
 	err := row.Scan(
 		&p.ID,
 		&p.Sku,

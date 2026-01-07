@@ -13,8 +13,8 @@ import (
 	"github.com/edmiltonVinicius/go-api-catalog/internal/adapters/httpapi"
 	"github.com/edmiltonVinicius/go-api-catalog/internal/adapters/httpapi/handlers"
 	"github.com/edmiltonVinicius/go-api-catalog/internal/adapters/postgres"
+	"github.com/edmiltonVinicius/go-api-catalog/internal/application/product"
 	"github.com/edmiltonVinicius/go-api-catalog/internal/config"
-	"github.com/edmiltonVinicius/go-api-catalog/internal/core/product"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

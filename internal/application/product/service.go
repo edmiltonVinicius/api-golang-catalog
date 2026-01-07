@@ -3,9 +3,8 @@ package product
 import (
 	"context"
 	"errors"
-	"time"
 
-	"github.com/google/uuid"
+	"github.com/edmiltonVinicius/go-api-catalog/internal/domain"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -23,8 +22,8 @@ func NewService(products ProductRepository, prices PriceRepository, stocks Stock
 	}
 }
 
-func assembleDetails(product *Product, price *Price, stock *Stock) *ProductDetails {
-	details := &ProductDetails{
+func assembleDetails(product *domain.Product, price *domain.Price, stock *domain.Stock) *domain.ProductDetails {
+	details := &domain.ProductDetails{
 		ID:          product.ID,
 		Sku:         product.Sku,
 		Name:        product.Name,
@@ -33,14 +32,14 @@ func assembleDetails(product *Product, price *Price, stock *Stock) *ProductDetai
 	}
 
 	if price != nil {
-		details.Price = PriceInfo{
+		details.Price = domain.PriceInfo{
 			Amount:   price.Amount,
 			Currency: price.Currency,
 		}
 	}
 
 	if stock != nil {
-		details.Stock = StockInfo{
+		details.Stock = domain.StockInfo{
 			Quantity:  stock.Quantity,
 			Available: stock.Quantity > 0,
 		}
@@ -49,13 +48,13 @@ func assembleDetails(product *Product, price *Price, stock *Stock) *ProductDetai
 	return details
 }
 
-func (s *Service) GetProduct(ctx context.Context, id string) (*ProductDetails, error) {
+func (s *Service) GetProduct(ctx context.Context, id string) (*domain.ProductDetails, error) {
 	g, ctx := errgroup.WithContext(ctx)
 
 	var (
-		product *Product
-		price   *Price
-		stock   *Stock
+		product *domain.Product
+		price   *domain.Price
+		stock   *domain.Stock
 	)
 
 	g.Go(func() error {
@@ -91,20 +90,12 @@ func (s *Service) GetProduct(ctx context.Context, id string) (*ProductDetails, e
 	return assembleDetails(product, price, stock), nil
 }
 
-func (s *Service) CreateProduct(ctx context.Context, data CreateProduct) error {
-	if data.Name == "" || data.Price <= 0 {
+func (s *Service) CreateProduct(ctx context.Context, d domain.Product) error {
+	if d.Name == "" {
 		return errors.New("invalid data to create product")
 	}
 
-	err := s.products.Create(ctx, Product{
-		ID:          uuid.New().String(),
-		Sku:         "",
-		Name:        data.Name,
-		Description: "",
-		Active:      data.Active,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-	})
+	err := s.products.Create(ctx, d)
 
 	return err
 }
