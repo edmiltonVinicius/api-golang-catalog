@@ -62,7 +62,7 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	domain, err := domain.NewProduct(domain.CreateProduct{
 		Name:        req.Name,
 		Price:       req.Price,
-		Active:      req.Active,
+		Active:      *req.Active,
 		Description: req.Description,
 	})
 
