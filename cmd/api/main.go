@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,14 +15,19 @@ import (
 	"github.com/edmiltonVinicius/go-api-catalog/internal/application/product"
 	"github.com/edmiltonVinicius/go-api-catalog/internal/config"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
 )
 
 func main() {
 
+	// 0. Start logger
+	config.StartLogger()
+	defer config.Logger.Sync()
+
 	// 1. Load configuration
 	cfg, err := config.LoadEnv()
 	if err != nil {
-		log.Fatalf("failed to load config: %v", err)
+		config.Logger.Fatal("failed to load config", zap.Error(err))
 	}
 
 	// 2. Root context + OS signals
@@ -33,15 +37,15 @@ func main() {
 	// 3. Postgres connection pool
 	pool, err := pgxpool.New(ctx, cfg.DatabaseURL)
 	if err != nil {
-		log.Fatalf("failed to create pgxpool: %v", err)
+		config.Logger.Fatal("failed to create pgxpool", zap.Error(err))
 	}
 	defer pool.Close()
 
 	// 4. Basic health check
 	if err := pool.Ping(ctx); err != nil {
-		log.Fatalf("failed to ping postgres: %v", err)
+		config.Logger.Fatal("failed to ping postgres", zap.Error(err))
 	}
-	log.Println("Postgres connection pool created successfully")
+	config.Logger.Info("Postgres connection pool created successfully")
 
 	// 5. Adapters (infraestructure)
 	postgresRepo := postgres.New(pool)
@@ -64,22 +68,23 @@ func main() {
 
 	// 9. Start server
 	go func() {
-		log.Printf("HTTP server listening on :%s", cfg.HTTPPort)
+		config.Logger.Info("HTTP server listening on", zap.String("port", cfg.HTTPPort))
+
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("HTTP server error :%v", err)
+			config.Logger.Fatal("HTTP server error", zap.Error(err))
 		}
 	}()
 
 	// 10. Graceful shutdown
 	<-ctx.Done()
-	log.Println("shutdown signal received")
+	config.Logger.Info("shutdown signal received")
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		log.Printf("graceful shutdown failed: %v", err)
+		config.Logger.Error("graceful shutdown failed", zap.Error(err))
 	}
 
-	log.Println("server stopped")
+	config.Logger.Info("server stopped")
 }
